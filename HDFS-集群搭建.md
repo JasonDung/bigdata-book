@@ -95,7 +95,7 @@ java version "1.8.0_141"
 Java(TM) SE Runtime Environment (build 1.8.0_141-b15)
 Java HotSpot(TM) 64-Bit Server VM (build 25.141-b15, mixed mode)
 ```
-### 4.2 安装zookeeper
+### 5.2 安装zookeeper
 * 第一步，解压下载的zookeeper安装包，并修改配置文件
 
 ```
@@ -136,7 +136,7 @@ STARTED
 7656 QuorumPeerMain
 7708 Jps
 ```
-### 4.3 安装hadoop
+### 5.3 安装hadoop
 * 第一步，解压下载的hadoop安装包
 
 ```
@@ -260,7 +260,7 @@ hdp-2
 hdp-3
 ```
 
-* 第四步，分别在各个节点配置hadoop环境变量
+* 第五步，分别在各个节点配置hadoop环境变量
 
 ```
 [root@hdp-1 opt]# vi /etc/profile
@@ -277,13 +277,13 @@ export HADOOP_INSTALL=$HADOOP_HOME
 #使环境变量生效
 [root@hdp-1 opt]# source /etc/profile
 ```
-* 第四步，将配置好的hadoop文件夹分别发送另外2台节点
+* 第六步，将配置好的hadoop文件夹分别发送另外2台节点
 
 ```
 [root@hdp-1 opt]# scp -r hadoop-2.8.3 hdp-2:/opt/
 [root@hdp-1 opt]# scp -r hadoop-2.8.3 hdp-3:/opt/
 ```
-*  第五步，分别在另外两台节点创建目录
+* 第七步，分别在另外两台节点创建目录
 
 ```
 [root@hdp-1 opt]# mkdir -p /data/logs/hadoop
@@ -291,7 +291,7 @@ export HADOOP_INSTALL=$HADOOP_HOME
 [root@hdp-1 opt]# mkdir -p /data/hadoop/hdfs/dn
 [root@hdp-1 opt]# mkdir -p /data/hadoop/hdfs/jn
 ```
-* 第六步，启动hadoop集群
+* 第八步，启动hadoop集群
 
 ```
 1，分别在各个节点启动journode（负责同步namenode之间的信息）
@@ -313,7 +313,7 @@ export HADOOP_INSTALL=$HADOOP_HOME
 [root@hdp-2 opt]# hadoop-daemon.sh --script hdfs start datanode
 [root@hdp-3 opt]# hadoop-daemon.sh --script hdfs start datanode
 ```
-* 第7步，验证是否搭建成功
+* 第九步，验证是否搭建成功
 页面地址：192.168.35.31:50070/dfshealth.html#tab-overview 
 
 ```
@@ -338,7 +338,7 @@ Compiled:	Tue Dec 05 11:43:00 +0800 2017 by jdu from branch-2.8.3
 Cluster ID:	CID-a6dae433-aa6f-4b7e-a9c0-81f5712c5bee
 Block Pool ID:	BP-1320373970-192.168.35.31-1575894650218
 ```
-第8步，测试是否会进行主备切换
+第十步，测试是否会进行主备切换
 
 1，停掉hdp-1的namenode节点之后，看hdp-2是否会切换状态为active
 
