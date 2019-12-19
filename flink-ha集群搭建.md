@@ -1,10 +1,11 @@
-# spark集群搭建-standalone模式
-## 1，准备节点
-hdp-1 (master,worker)
+# flink-ha集群搭建
+## 1. 准备3台节点
+在模版机的基础上克隆以下三台节点：
 
-hdp-2(master,worker)
+1. hdp-1(jobmanager，taskmanager)
+2. hdp-2(jobmanager，taskmanager)
+3. hdp-3(taskmanager)
 
-hdp-3(worker)
 ## 2.增加主机映射
 为了方便直接使用主机名来连接主机，需要在每台节点的hosts文件中都增加以下映射关系：
 
@@ -70,7 +71,7 @@ and check to make sure that only the key(s) you wanted were added.
 [root@hdp-1 opt]# systemctl disable firewalld.service 
 
 ```
-## 5，搭建spark集群
+## 5，搭建flink集群
 ### 5.1，安装JDK环境
 * 第一步，解压jdk包
 
@@ -138,45 +139,48 @@ STARTED
 * 第一步，从官网下载安装包后解压
 
 ```
-[root@hdp-1 opt]# tar -xvf spark-2.4.4-bin-hadoop2.7.tgz
-[root@hdp-1 opt]# cd spark-2.4.4-bin-hadoop2.7
+[root@hdp-1 opt]# tar -xvf flink-1.9.1-bin-scala_2.12.tgz 
+[root@hdp-1 opt]# cd flink-1.9.1
 ```
 * 第二步，修改配置
 
 ```
-[root@hdp-1 spark-2.4.4-bin-hadoop2.7]# cp conf/spark-env.sh.template conf/spark-env.sh
-[root@hdp-1 spark-2.4.4-bin-hadoop2.7]# vi conf/spark-env.sh
-export JAVA_HOME=/opt/jdk/jdk1.8.0_141/
-export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=hdp-1:2181,hdp-2:2181,hdp-3:2181 -Dspark.deploy.zookeeper.dir=/spark"
-# 从节点配置
-[root@hdp-1 spark-2.4.4-bin-hadoop2.7]# cp conf/slaves.template conf/slaves
-[root@hdp-1 spark-2.4.4-bin-hadoop2.7]# vi conf/slaves
+[root@hdp-1 flink-1.9.1]# vi conf/flink-conf.yaml 
+high-availability: zookeeper
+high-availability.zookeeper.quorum: hdp-1:2181,hdp-2:2181,hdp-3:2181
+high-availability.zookeeper.path.root: /flink
+high-availability.cluster-id: /flink-one # important: customize per cluster
+high-availability.storageDir: hdfs://hdp-1:8020/flink/recovery
+#指定jobmanager节点
+[root@hdp-1 flink-1.9.1]# vi conf/masters
+hdp-1:8082
+hdp-2:8082
+#指定taskmanager节点
+[root@hdp-1 flink-1.9.1]# vi conf/slaves
 hdp-1
 hdp-2
 hdp-3
 ```
-* 第三步，将配置好的spark根目录，发送至另外两台节点
+* 第三步，由于flink内部没有hadoop相关jar，需从flink官网下载支持的hadoop相关jar
 
 ```
-[root@hdp-1 opt]# scp -r spark-2.4.4-bin-hadoop2.7 hdp-2:/opt/
-[root@hdp-1 opt]# scp -r spark-2.4.4-bin-hadoop2.7 hdp-3:/opt/
+[root@hdp-1 flink-1.9.1]# wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-7.0/flink-shaded-hadoop-2-uber-2.8.3-7.0.jar
+[root@hdp-1 flink-1.9.1]# mv flink-shaded-hadoop-2-uber-2.8.3-7.0.jar lib/
 ```
-* 第四步,启动集群
+* 第四步，将配置好的flink发送给各节点
 
 ```
-[root@hdp-1 spark-2.4.4-bin-hadoop2.7]# sbin/start-all.sh 
-#在另外一台master节点hdp-2处启动master服务
-[root@hdp-2 spark-2.4.4-bin-hadoop2.7]# sbin/start-master.sh 
+[root@hdp-1 opt]# scp -r flink-1.9.1 hdp-2:/opt/
+[root@hdp-1 opt]# scp -r flink-1.9.1 hdp-3:/opt/
 ```
-* 第五步，页面查看
-http://192.168.35.31:8080  （alive）
-http://192.168.35.32:8080   （standby）
-* 验证主备切换
+* 第五步，启动flink
 
 ```
-#停掉hdp-1的alive状态的master服务
-[root@hdp-1 spark-2.4.4-bin-hadoop2.7]# sbin/stop-master.sh 
+[root@hdp-1 flink-1.9.1]# bin/start-cluster.sh 
 ```
-刷新hdp-2的standby状态的master节点，看是否切换为alive状态！
+* 第6步，页面验证
 
+192.168.35.31:8082  hdp-1（jobmanager）
+
+192.168.35.32:8082  hdp-2（jobmanager）
 
