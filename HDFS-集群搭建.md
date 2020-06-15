@@ -249,6 +249,45 @@ export HADOOP_DATANODE_OPTS="-Xms1024m	-Xmx1024m"
 			<description>auto failover 基于zookeeper，故指定zookeeper集群访问地址</description>
 		</property>
 </configuration>
+// 配置mapred-site.xml
+<configuration>
+<!-- 指定mr框架为yarn方式 -->
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+</configuration>
+
+// 配置hadoop/etc/yarn-site.xml
+<configuration>
+<property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.ha.enabled</name>
+    <value>true</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.cluster-id</name>
+    <value>cluster1</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.ha.rm-ids</name>
+    <value>rm1,rm2</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.hostname.rm1</name>
+    <value>hdp-2</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.hostname.rm2</name>
+    <value>hdp-3</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.zk-address</name>
+    <value>hdp-1:2181,hdp-2:2181,hdp-3:2181</value>
+</property>
 ```
 
 * 第四步，修改slave文件
@@ -312,6 +351,10 @@ export HADOOP_INSTALL=$HADOOP_HOME
 [root@hdp-1 opt]# hadoop-daemon.sh --script hdfs start datanode
 [root@hdp-2 opt]# hadoop-daemon.sh --script hdfs start datanode
 [root@hdp-3 opt]# hadoop-daemon.sh --script hdfs start datanode
+8，启动yarn节点
+[root@hdp-1 opt]# start-yarn.sh
+9，启动rm节点
+[root@hdp-3 opt]# yarn-daemon.sh start resourcemanager
 ```
 * 第九步，验证是否搭建成功
 页面地址：192.168.35.31:50070/dfshealth.html#tab-overview 
